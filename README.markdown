@@ -439,7 +439,7 @@ Evaluation took:
 ## Authors and maintainers
 
 * Eitaro Fukamachi (e.arrows@gmail.com): author
-* Pierre Neidhardt (mail@ambrevar.xyz): maintainer
+* André A. Gomes (andremegafone@gmail.com): maintainer
 
 ## Copyright
 

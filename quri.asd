@@ -1,7 +1,7 @@
 (defsystem "quri"
   :version "0.7.0"
   :author "Eitaro Fukamachi"
-  :maintainer "Pierre Neidhardt"
+  :maintainer "André A. Gomes"
   :license "BSD 3-Clause"
   :depends-on ("babel"
                "alexandria"
