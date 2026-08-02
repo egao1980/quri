@@ -1,4 +1,1 @@
-# cl-idna is not on Quicklisp; pin from GitHub for local qlot consumers.
-# CI clones cl-idna into Quicklisp local-projects instead of using qlot
-# (`ros install qlot` from this tree otherwise pulls quri.asd → cl-idna).
 github egao1980/cl-idna
