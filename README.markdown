@@ -11,6 +11,19 @@
 It aims at implementing [RFC 3986](https://www.rfc-editor.org/rfc/rfc3986).
 Behaviour that deviates from it should be considered a bug; please report.
 
+> **Fork note (`egao1980/quri`):** IDNA uses [`cl-idna`](https://github.com/egao1980/cl-idna) (IDNA2008 / UTS #46) instead of Quicklisp `idna`. `cl-idna` is on [Ultralisp](https://ultralisp.org/) / GitHub — not Quicklisp — so this fork is **not** proposed upstream until `cl-idna` is QL-available.
+>
+> **OCI:** `ghcr.io/egao1980/cl-systems/quri:0.7.1` (depends on `cl-idna`).
+>
+> ```common-lisp
+> (asdf:load-system "cl-repository-client")
+> (cl-repository-client/quickload:add-registry "https://ghcr.io"
+>   :namespace "egao1980/cl-systems")
+> (cl-repo:load-system "quri")
+> ```
+>
+> qlot: `github egao1980/quri` (+ `github egao1980/cl-idna` via this repo's `qlfile`).
+
 ## Differences from PURI
 
 - Fast. (See [Benchmark](#benchmark).)

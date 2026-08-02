@@ -1,5 +1,5 @@
 (defsystem "quri"
-  :version "0.7.0"
+  :version "0.7.1"
   :author "Eitaro Fukamachi"
   :maintainer "André A. Gomes"
   :license "BSD 3-Clause"
@@ -7,7 +7,7 @@
                "alexandria"
                "split-sequence"
                "cl-utilities"
-               "idna"
+               "cl-idna"
                #+sbcl "sb-cltl2")
   :components ((:module "src"
                 :components

@@ -1,0 +1,2 @@
+# cl-idna is not on Quicklisp; pin from GitHub for qlot consumers.
+github egao1980/cl-idna

@@ -1,6 +1,14 @@
 name: CI
 
-on: [push]
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: quri-ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   test:
@@ -17,10 +25,14 @@ jobs:
         env:
           LISP: ${{ matrix.lisp }}
         run: curl -L https://raw.githubusercontent.com/roswell/roswell/master/scripts/install-for-ci.sh | sh -x
-      - name: Install Prove
-        run: ros install prove cl-utilities
+      - name: Install Prove + cl-idna (not on Quicklisp)
+        run: |
+          ros install prove cl-utilities
+          git clone --depth 1 https://github.com/egao1980/cl-idna.git "$HOME/quicklisp/local-projects/cl-idna"
+          ros -e '(ql:register-local-projects)' -e '(ql:quickload :cl-idna)'
       - name: Run tests
         run: |
           PATH="~/.roswell/bin:$PATH"
+          export CL_SOURCE_REGISTRY="$(pwd)//:"
           ros -s quri-test
           run-prove quri-test.asd

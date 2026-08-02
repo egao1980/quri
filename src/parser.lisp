@@ -131,7 +131,7 @@
                     (unless (= host-start host-end)
                       (setq host (subseq data host-start host-end))
                       (when non-ascii
-                        (setq host (idna:to-ascii host))))
+                        (setq host (cl-idna:to-ascii host))))
                     (cond
                       (port-start
                        (locally (declare (type fixnum port-start port-end))
@@ -225,7 +225,7 @@
                       (unless (= host-start host-end)
                         (setq host (subseq* data host-start host-end))
                         (when non-ascii
-                          (setq host (idna:to-ascii host))))
+                          (setq host (cl-idna:to-ascii host))))
                       (cond
                         (port-start
                          (setq port
