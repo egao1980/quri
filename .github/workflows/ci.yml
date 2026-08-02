@@ -10,29 +10,30 @@ concurrency:
   group: quri-ci-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  SBCL_VERSION: 2.4.11
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
 jobs:
   test:
-    name: ${{ matrix.lisp }} on ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        lisp: [sbcl-bin]
-        os: [ubuntu-latest]
-
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - name: Install Roswell
-        env:
-          LISP: ${{ matrix.lisp }}
-        run: curl -L https://raw.githubusercontent.com/roswell/roswell/master/scripts/install-for-ci.sh | sh -x
-      - name: Install Prove + cl-idna (not on Quicklisp)
         run: |
-          ros install prove cl-utilities
-          git clone --depth 1 https://github.com/egao1980/cl-idna.git "$HOME/quicklisp/local-projects/cl-idna"
-          ros -e '(ql:register-local-projects)' -e '(ql:quickload :cl-idna)'
-      - name: Run tests
+          curl -sL https://raw.githubusercontent.com/roswell/roswell/master/scripts/install-for-ci.sh | bash
+          echo "$HOME/.roswell/bin" >> "$GITHUB_PATH"
+
+      - name: Install SBCL + qlot
         run: |
-          PATH="~/.roswell/bin:$PATH"
-          export CL_SOURCE_REGISTRY="$(pwd)//:"
-          ros -s quri-test
-          run-prove quri-test.asd
+          ros install "sbcl-bin/$SBCL_VERSION"
+          ros use "sbcl-bin/$SBCL_VERSION"
+          ros install qlot
+
+      - name: qlot install
+        run: qlot install
+
+      - name: Test
+        run: |
+          qlot exec ros -S . -e '(asdf:test-system "quri")'

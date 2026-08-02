@@ -1,2 +1,4 @@
-# cl-idna is not on Quicklisp; pin from GitHub for qlot consumers.
+# cl-idna is not on Quicklisp; pin from GitHub.
 github egao1980/cl-idna
+ql prove
+ql prove-asdf
