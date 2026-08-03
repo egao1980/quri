@@ -42,8 +42,17 @@
       (ql:quickload name :silent t))))
 
 (defun ci-use-local-checkout ()
+  "Register this checkout after OCI deps are installed (esp. cl-idna)."
   (let ((root (uiop:getcwd)))
     (pushnew root asdf:*central-registry* :test #'equal)
+    ;; Prefer this tree over any QL quri the client bootstrap pulled in.
+    (asdf:initialize-source-registry
+     `(:source-registry
+       (:directory ,root)
+       (:tree ,(merge-pathnames ".cl-repository/" root))
+       (:tree ,(merge-pathnames ".local/share/cl-repository/systems/"
+                                (user-homedir-pathname)))
+       :inherit-configuration))
     (asdf:load-asd (merge-pathnames "quri.asd" root))
     (asdf:load-asd (merge-pathnames "quri-test.asd" root))
     (asdf:clear-system "quri")

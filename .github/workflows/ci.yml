@@ -68,5 +68,9 @@ jobs:
       - name: cl-repo install deps + test
         shell: bash
         run: |
-          export CL_SOURCE_REGISTRY="$(pwd)//:$(pwd)/.cl-repository//:"
+          # Only cl-repository here: bootstrap already QL-loaded "quri", and putting
+          # this checkout first makes ASDF pick local quri (needs cl-idna) before
+          # ci-test.lisp can cl-repo load cl-idna. Local checkout is registered in
+          # scripts/ci-test.lisp via ci-use-local-checkout after deps.
+          export CL_SOURCE_REGISTRY="$(pwd)/.cl-repository//:"
           ros -l scripts/ci-test.lisp -q
