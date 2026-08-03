@@ -13,6 +13,7 @@ concurrency:
 env:
   SBCL_VERSION: 2.4.11
   ROSWELL_VERSION: "26.02.116"
+  CL_REPOSITORY_REF: "main"
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
@@ -23,7 +24,17 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
+      - name: Disable git CRLF conversion (Windows)
+        if: runner.os == 'Windows'
+        run: git config --global core.autocrlf false
+
       - uses: actions/checkout@v4
+
+      - uses: actions/checkout@v4
+        with:
+          repository: egao1980/cl-repository
+          ref: ${{ env.CL_REPOSITORY_REF }}
+          path: .cl-repository
 
       - name: Install Roswell (Unix)
         if: runner.os != 'Windows'
@@ -49,21 +60,13 @@ jobs:
           ros install "sbcl-bin/$SBCL_VERSION"
           ros use "sbcl-bin/$SBCL_VERSION"
 
-      # cl-idna is not on Quicklisp — checkout beside quri (qlfile pins it for qlot consumers).
-      - name: Checkout cl-idna
-        uses: actions/checkout@v4
-        with:
-          repository: egao1980/cl-idna
-          path: .cl-idna
-
-      - name: Install Prove + deps
+      - name: Bootstrap client (QL) + cl-repo project deps + test
         shell: bash
         run: |
-          ros install prove
-          ros -e '(ql:quickload (quote ("cl-unicode" "babel" "alexandria" "split-sequence")) :silent t)' -q
-
-      - name: Run tests
-        shell: bash
-        run: |
-          export CL_SOURCE_REGISTRY="$(pwd)/.cl-idna//:$(pwd)//:"
-          ros -e '(asdf:test-system "quri")' -q
+          # One Roswell image: client bootstrap must see upstream QL quri (dexador),
+          # not ./quri.asd (needs cl-idna). Project deps/tests are cl-repo in
+          # scripts/ci-test.lisp — no ql:quickload of project systems there.
+          unset CL_SOURCE_REGISTRY
+          ros -e '(asdf:initialize-source-registry `(:source-registry (:tree ,(merge-pathnames ".cl-repository/" (uiop:getcwd))) :ignore-inherited-configuration))' \
+              -e '(ql:quickload (quote ("yason" "ironclad" "babel" "dexador" "quri" "chipz" "flexi-streams" "cl-ppcre" "cl-base64" "trivial-features" "salza2" "archive")) :silent t)' \
+              -l scripts/ci-test.lisp -q
