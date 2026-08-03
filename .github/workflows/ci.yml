@@ -68,5 +68,5 @@ jobs:
       - name: cl-repo install deps + test
         shell: bash
         run: |
-          export CL_SOURCE_REGISTRY="$(pwd)/.cl-repository//:"
+          export CL_SOURCE_REGISTRY="$(pwd)//:$(pwd)/.cl-repository//:"
           ros -l scripts/ci-test.lisp -q
