@@ -20,9 +20,24 @@
   #-sbcl
   (funcall fn))
 
-(call-with-ci-muffles
- (lambda ()
-   (asdf:load-system "cl-repository-client")))
+(defun ci-root ()
+  (uiop:getcwd))
+
+(defun ci-bootstrap-client ()
+  "Load cl-repository-client without discovering this checkout's quri.asd.
+
+  Roswell bootstrap QL-loads upstream quri for the client. A trailing `:` on
+  CL_SOURCE_REGISTRY (or ASDF's default inherit) would also see ./quri.asd,
+  which depends on cl-idna — not yet installed. Restrict the registry to the
+  cl-repository checkout until OCI deps are in place."
+  (let ((repo (merge-pathnames ".cl-repository/" (ci-root))))
+    (asdf:initialize-source-registry
+     `(:source-registry
+       (:tree ,repo)
+       :ignore-inherited-configuration))
+    (call-with-ci-muffles
+     (lambda ()
+       (asdf:load-system "cl-repository-client")))))
 
 (defun ci-load (name &key version)
   (format t "~&; ci: cl-repo load ~a~@[:~a~]~%" name version)
@@ -43,9 +58,8 @@
 
 (defun ci-use-local-checkout ()
   "Register this checkout after OCI deps are installed (esp. cl-idna)."
-  (let ((root (uiop:getcwd)))
+  (let ((root (ci-root)))
     (pushnew root asdf:*central-registry* :test #'equal)
-    ;; Prefer this tree over any QL quri the client bootstrap pulled in.
     (asdf:initialize-source-registry
      `(:source-registry
        (:directory ,root)
@@ -63,6 +77,8 @@
     ("trivial-features" :ql)
     ("cl-unicode" :ql))
   "QL pins: babel already bootstrapped; cl-unicode OCI v0.1.6 lacks idna-mapping.")
+
+(ci-bootstrap-client)
 
 (cl-repo:add-registry "https://ghcr.io" :namespace "egao1980/cl-systems" :priority :prepend)
 
