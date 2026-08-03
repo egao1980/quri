@@ -11,35 +11,59 @@ concurrency:
   cancel-in-progress: true
 
 env:
+  SBCL_VERSION: 2.4.11
+  ROSWELL_VERSION: "26.02.116"
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Roswell
+      - name: Install Roswell (Unix)
+        if: runner.os != 'Windows'
+        shell: bash
         run: |
           curl -sL https://raw.githubusercontent.com/roswell/roswell/master/scripts/install-for-ci.sh | bash
           echo "$HOME/.roswell/bin" >> "$GITHUB_PATH"
 
-      # Install outside the checkout — `ros install` from the project dir sees
-      # quri.asd → cl-idna (not on Quicklisp). qlfile pins github egao1980/cl-idna
-      # for local `qlot install` consumers.
-      - name: Install Prove + cl-idna
-        working-directory: ${{ runner.temp }}
+      - name: Install Roswell (Windows)
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          curl -sL "https://github.com/roswell/roswell/releases/download/v${ROSWELL_VERSION}/roswell_${ROSWELL_VERSION}_amd64.zip" \
+            -o /tmp/roswell.zip
+          rm -rf /c/roswell && mkdir -p /c/roswell
+          unzip -qo /tmp/roswell.zip -d /c/roswell
+          echo "/c/roswell/roswell" >> "$GITHUB_PATH"
+          echo "$HOME/.roswell/bin" >> "$GITHUB_PATH"
+
+      - name: Install SBCL
+        shell: bash
+        run: |
+          ros install "sbcl-bin/$SBCL_VERSION"
+          ros use "sbcl-bin/$SBCL_VERSION"
+
+      # cl-idna is not on Quicklisp — checkout beside quri (qlfile pins it for qlot consumers).
+      - name: Checkout cl-idna
+        uses: actions/checkout@v4
+        with:
+          repository: egao1980/cl-idna
+          path: .cl-idna
+
+      - name: Install Prove + deps
+        shell: bash
         run: |
           ros install prove
-          git clone --depth 1 https://github.com/egao1980/cl-idna.git \
-            "$HOME/quicklisp/local-projects/cl-idna"
-          ln -sfn "$GITHUB_WORKSPACE" "$HOME/quicklisp/local-projects/quri"
-          ros -e '(ql:register-local-projects)' \
-              -e '(ql:quickload :cl-idna)'
+          ros -e '(ql:quickload (quote ("cl-unicode" "babel" "alexandria" "split-sequence")) :silent t)' -q
 
       - name: Run tests
+        shell: bash
         run: |
-          export CL_SOURCE_REGISTRY="${HOME}/quicklisp/local-projects/cl-idna//:${GITHUB_WORKSPACE}//:"
-          PATH="${HOME}/.roswell/bin:${PATH}"
-          ros -e '(ql:register-local-projects)' \
-              -e '(asdf:test-system "quri")'
+          export CL_SOURCE_REGISTRY="$(pwd)/.cl-idna//:$(pwd)//:"
+          ros -e '(asdf:test-system "quri")' -q
