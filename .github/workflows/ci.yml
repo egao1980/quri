@@ -60,15 +60,13 @@ jobs:
           ros install "sbcl-bin/$SBCL_VERSION"
           ros use "sbcl-bin/$SBCL_VERSION"
 
-      - name: Bootstrap cl-repository-client (QL deps for client only)
+      - name: Bootstrap client (QL) + cl-repo project deps + test
         shell: bash
         run: |
-          ros -e '(ql:quickload (quote ("yason" "ironclad" "babel" "dexador" "quri" "chipz" "flexi-streams" "cl-ppcre" "cl-base64" "trivial-features" "salza2" "archive")) :silent t)' -q
-
-      - name: cl-repo install deps + test
-        shell: bash
-        run: |
-          # Registry is configured inside scripts/ci-test.lisp (must not inherit
-          # cwd before cl-idna is installed — this checkout is also named quri).
+          # One Roswell image: client bootstrap must see upstream QL quri (dexador),
+          # not ./quri.asd (needs cl-idna). Project deps/tests are cl-repo in
+          # scripts/ci-test.lisp — no ql:quickload of project systems there.
           unset CL_SOURCE_REGISTRY
-          ros -l scripts/ci-test.lisp -q
+          ros -e '(asdf:initialize-source-registry `(:source-registry (:tree ,(merge-pathnames ".cl-repository/" (uiop:getcwd))) :ignore-inherited-configuration))' \
+              -e '(ql:quickload (quote ("yason" "ironclad" "babel" "dexador" "quri" "chipz" "flexi-streams" "cl-ppcre" "cl-base64" "trivial-features" "salza2" "archive")) :silent t)' \
+              -l scripts/ci-test.lisp -q

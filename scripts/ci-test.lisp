@@ -1,4 +1,12 @@
-;;;; CI: install deps via cl-repository-client (OCI), then test this checkout.
+;;;; CI: install project deps via cl-repository-client (OCI), then test this checkout.
+;;;;
+;;;; cl-repository-client itself is bootstrapped in the workflow (QL deps for the
+;;;; client only — same list as every other egao1980 CI). This file must not
+;;;; ql:quickload project systems; those come from cl-repo below.
+;;;;
+;;;; Special case: this checkout is also named "quri", and the client's QL
+;;;; bootstrap already loaded upstream quri. Hide ./quri.asd until cl-idna is
+;;;; installed via cl-repo, then register this checkout for the test run.
 
 (setf *debugger-hook*
       (lambda (c h)
@@ -6,7 +14,6 @@
         (format *error-output* "~&UNHANDLED: ~A~%" c)
         (uiop:quit 1)))
 
-;; QL client bootstrap and OCI pins can both define babel constants / packages.
 (setf asdf:*compile-file-failure-behaviour* :warn)
 
 (defun call-with-ci-muffles (fn)
@@ -23,10 +30,8 @@
 (defun ci-root ()
   (uiop:getcwd))
 
-;;; Restrict ASDF so ./quri.asd (needs cl-idna) is not visible while the client
-;;; loads. Must run before any CL-REPO: symbols are read in later forms.
-;;; Then QL-load upstream quri (no cl-idna) — ignore-inherited also hides the
-;;; Quicklisp tree from ASDF, so dexador's quri dep must come via ql:quickload.
+;;; Hide ./quri.asd while loading the client (needs upstream quri from the
+;;; workflow bootstrap, not this fork's cl-idna-dependent .asd).
 (let ((repo (merge-pathnames ".cl-repository/" (ci-root))))
   (asdf:initialize-source-registry
    `(:source-registry
@@ -35,7 +40,6 @@
 
 (call-with-ci-muffles
  (lambda ()
-   (ql:quickload "quri" :silent t)
    (asdf:load-system "cl-repository-client")))
 
 (defun ci-load (name &key version)
@@ -75,18 +79,18 @@
   '(("babel" :ql)
     ("trivial-features" :ql)
     ("cl-unicode" :ql))
-  "QL pins: babel already bootstrapped; cl-unicode OCI v0.1.6 lacks idna-mapping.")
+  "cl-repo :sources pins — babel already in client image; cl-unicode OCI lacks idna-mapping.")
 
 (cl-repo:add-registry "https://ghcr.io" :namespace "egao1980/cl-systems" :priority :prepend)
 
 (call-with-ci-muffles
  (lambda ()
-   ;; Omit :version -> cl-repo resolves newest published tag.
+   ;; Project deps: cl-repo only (newest tag). Not ql:quickload.
    (ci-load "alexandria")
    (ci-load "split-sequence")
    (ci-load "cl-utilities")
    (ci-load "cl-idna")
-   (ci-ensure-ql "prove")
+   (ci-ensure-ql "prove") ; not published to cl-systems yet
    (ci-use-local-checkout)
    (asdf:test-system "quri")))
 
