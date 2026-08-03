@@ -1,1 +1,2 @@
+# qlot/local fallback only; CI resolves cl-idna from ghcr.io/egao1980/cl-systems via cl-repository.
 github egao1980/cl-idna
