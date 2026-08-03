@@ -25,6 +25,8 @@
 
 ;;; Restrict ASDF so ./quri.asd (needs cl-idna) is not visible while the client
 ;;; loads. Must run before any CL-REPO: symbols are read in later forms.
+;;; Then QL-load upstream quri (no cl-idna) — ignore-inherited also hides the
+;;; Quicklisp tree from ASDF, so dexador's quri dep must come via ql:quickload.
 (let ((repo (merge-pathnames ".cl-repository/" (ci-root))))
   (asdf:initialize-source-registry
    `(:source-registry
@@ -33,6 +35,7 @@
 
 (call-with-ci-muffles
  (lambda ()
+   (ql:quickload "quri" :silent t)
    (asdf:load-system "cl-repository-client")))
 
 (defun ci-load (name &key version)
