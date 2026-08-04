@@ -458,6 +458,14 @@ Evaluation took:
 
 Copyright (c) 2014-2019 Eitaro Fukamachi (e.arrows@gmail.com)
 
+## Publish
+
+Source-only OCI publish is centralized in [](https://github.com/egao1980/cl-stack-systems)
+( pin + shared ). Packaging metadata lives in the 
+():
+
+https://github.com/egao1980/cl-stack-systems/actions/runs/30944205932
+
 ## License
 
 Licensed under the BSD 3-Clause License.
