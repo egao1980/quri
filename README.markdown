@@ -460,11 +460,14 @@ Copyright (c) 2014-2019 Eitaro Fukamachi (e.arrows@gmail.com)
 
 ## Publish
 
-Source-only OCI publish is centralized in [](https://github.com/egao1980/cl-stack-systems)
-( pin + shared ). Packaging metadata lives in the 
-():
+Source-only OCI publish is centralized in [`cl-stack-systems`](https://github.com/egao1980/cl-stack-systems)
+(`imports/quri/qlfile` pin + shared `publish.yml`). Packaging metadata lives in the `.asd`
+(`auto-package-spec`):
 
-https://github.com/egao1980/cl-stack-systems/actions/runs/30944205932
+```bash
+gh workflow run publish.yml -R egao1980/cl-stack-systems -f import=quri
+```
+
 
 ## License
 
