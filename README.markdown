@@ -458,6 +458,17 @@ Evaluation took:
 
 Copyright (c) 2014-2019 Eitaro Fukamachi (e.arrows@gmail.com)
 
+## Publish
+
+Source-only OCI publish is centralized in [`cl-stack-systems`](https://github.com/egao1980/cl-stack-systems)
+(`imports/quri/qlfile` pin + shared `publish.yml`). Packaging metadata lives in the `.asd`
+(`auto-package-spec`):
+
+```bash
+gh workflow run publish.yml -R egao1980/cl-stack-systems -f import=quri
+```
+
+
 ## License
 
 Licensed under the BSD 3-Clause License.
