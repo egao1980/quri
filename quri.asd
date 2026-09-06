@@ -30,5 +30,5 @@
                  (:file "util")
                  (:file "error"))))
   :description "Yet another URI library for Common Lisp"
-  :properties (:cl-repo (:ci (:with ("prove" "prove-asdf"))))
+  :properties (:cl-repo (:ci (:with ("prove-asdf"))))
   :in-order-to ((test-op (test-op "quri-test"))))
