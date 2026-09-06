@@ -9,3 +9,5 @@ on:
 jobs:
   test:
     uses: egao1980/cl-repository/.github/workflows/test-system.yml@main
+    with:
+      extra-with: prove-asdf
