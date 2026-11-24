@@ -13,7 +13,9 @@ Behaviour that deviates from it should be considered a bug; please report.
 
 > **Fork note (`egao1980/quri`):** IDNA uses [`cl-idna`](https://github.com/egao1980/cl-idna) (IDNA2008 / UTS #46) instead of Quicklisp `idna`. `cl-idna` is on [Ultralisp](https://ultralisp.org/) / GitHub — not Quicklisp — so this fork is **not** proposed upstream until `cl-idna` is QL-available.
 >
-> **OCI:** `ghcr.io/egao1980/cl-systems/quri:0.7.1` (depends on `cl-idna`).
+> **Userinfo before an IP literal (0.7.2):** `redis://:pw@[::1]:6379/2` parses, with host `"[::1]"` (RFC 3986 §3.2). Upstream accepts `[` only at the start of the authority.
+>
+> **OCI:** `ghcr.io/egao1980/cl-systems/quri:0.7.2` (depends on `cl-idna`).
 >
 > ```common-lisp
 > (asdf:load-system "cl-repository-client")
@@ -460,12 +462,13 @@ Copyright (c) 2014-2019 Eitaro Fukamachi (e.arrows@gmail.com)
 
 ## Publish
 
-Source-only OCI publish is centralized in [`cl-stack-systems`](https://github.com/egao1980/cl-stack-systems)
-(`imports/quri/qlfile` pin + shared `publish.yml`). Packaging metadata lives in the `.asd`
-(`auto-package-spec`):
+This fork publishes its own source-only OCI package (`publish-checkout.yml`, the canned
+cl-repository workflow); [`cl-stack-systems`](https://github.com/egao1980/cl-stack-systems)
+imports only unmodified third-party systems. Packaging metadata lives in the `.asd`
+(`auto-package-spec`). The OCI tag is the `.asd` `:version`:
 
 ```bash
-gh workflow run publish.yml -R egao1980/cl-stack-systems -f import=quri
+gh workflow run publish-checkout.yml -R egao1980/quri --ref master
 ```
 
 
