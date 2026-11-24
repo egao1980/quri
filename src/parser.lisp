@@ -410,7 +410,8 @@
             userinfo-end p)
       (setq authority-mark (1+ p)
             colon-mark nil)
-      (redo))
+      ;; RFC 3986 3.2: the host after the userinfo may be an IP literal.
+      (goto parsing-authority-start))
      ((or (char=* char #\/)
           (char=* char #\?)
           (char=* char #\#))

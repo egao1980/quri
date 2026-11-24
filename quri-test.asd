@@ -20,5 +20,9 @@
 
   :defsystem-depends-on (:prove-asdf)
   :perform (test-op :after (op c)
-                    (funcall (intern #.(string :run-test-system) :prove-asdf) c)
-                    (asdf:clear-system c)))
+                    ;; RUN-TEST-SYSTEM returns NIL when a test file fails; fail
+                    ;; the test-op too, so asdf:test-system and CI see it.
+                    (let ((passed (funcall (intern #.(string :run-test-system) :prove-asdf) c)))
+                      (asdf:clear-system c)
+                      (unless passed
+                        (error "quri-test: some test files failed.")))))
